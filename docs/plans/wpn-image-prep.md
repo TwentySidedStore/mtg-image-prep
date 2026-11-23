@@ -1,7 +1,7 @@
 # Feature: WPN Image Prep
 
 > **Branch:** `wpn-image-prep`
-> **Status:** Draft
+> **Status:** In Progress (Stage 1/4)
 
 ## Problem
 
@@ -26,7 +26,7 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 - **Magic is the default.** Without a flag, the script works as now: set code, `_01`/`_02` swap, only complete pairs.
 - **`-g`, `--general`.** The script converts each PNG in the zip with its own name, in name order. It does no swap and needs no set code. A flag is used, not a detection from the file names, because the Hellfire Club names look like Magic pairs.
-- **Output folder.** `default_output_dir(zip_basename, general)` returns `output/<SETCODE>` for Magic and `output/<zip name without .zip>` in general mode, for example `output/furyofdracula_pdp`. `run` uses `options[:output] || default_output_dir(...)`. As for Magic, the script deletes the default folder and makes it again on each run.
+- **Output folder.** `default_output_dir(zip_basename, general)` returns `output/<SETCODE>` for Magic and `output/<zip name without .zip>` in general mode, for example `output/furyofdracula_pdp`. `run` uses `options[:output] || default_output_dir(...)`. As for Magic, the script deletes the default folder and makes it again on each run. With `-o`, the script no longer asks for a set code, because it does not need one.
 - **One framing for each image.** The conversion trims the transparent edges, adds a white margin of 5% of the long side on each side, makes the image square, makes it 2048px or smaller, and writes a JPEG with the `-q` quality (default 85). The 1px transparent border before `-trim` makes the trim remove only transparent edges: an opaque image keeps all its pixels. The size limit is the last step, so that the margin does not make the image larger than 2048px. An image smaller than 2048px is not enlarged. The ImageMagick command is:
 
   ```bash
@@ -36,9 +36,11 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
     -flatten -resize '2048x2048>' -quality QUALITY DEST.jpg
   ```
 
+- **Help.** `./prep.rb -h` explains both modes, the framing and the options, with one example for each mode. When a Magic run finds no complete pair, the error says to use `-g` for a non-Magic zip. `README.md` holds the setup, the usage and the same explanation.
 - **Tests.** Minitest 5, in one file, `test/prep_test.rb`, run with `ruby test/prep_test.rb`. The file requires `prep.rb` first, then `minitest/autorun`. The `__FILE__` guard stops `prep.rb` from running. The tests:
   - build small zips and PNGs in a temporary folder;
   - call the methods of `prep.rb`, but never `run`, `preflight` or `ensure_output_dir`, because `ensure_output_dir` deletes folders under `output/`;
+  - make the output folder in the temporary folder;
   - capture the progress output;
   - compare JPEG colours with a tolerance;
   - need ImageMagick on the PATH, as the script does.
@@ -54,16 +56,17 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 | File | Change | Why |
 |------|--------|-----|
-| `prep.rb` | `--general`, `default_output_dir`, new framing, `-o` help text | The feature |
+| `prep.rb` | `--general`, `default_output_dir`, new framing, help text, error hint | The feature |
 | `Gemfile`, `Gemfile.lock` | `gem 'minitest', '~> 5.25'` | Tests |
 | `test/prep_test.rb` | New: helpers and all tests | Tests |
 | `PLAN.md` | Moved to `docs/implementations/2026-04-17_mtg-image-prep.md` | Docs convention |
 | `CLAUDE.md` | Rewritten, a few lines | Docs |
+| `README.md` | New: setup, usage, modes, framing, tests | Docs |
 
 ## Risks
 
 - **Magic output changes.** Magic images now have a 5% margin. Before, the margin was about 1% on the long side. The margin also makes more images reach the 2048px limit: 104 of the 288 Magic JPEGs in `output/`, against 14 now. A product that is 2000px now becomes about 1862px. New Magic sets look different from the earlier ones in the store.
-- **A non-Magic zip without `-g`.** A zip name with a 3-letter first part gives a set code. Thus `pds_hfc_en.zip` without `-g` writes 2 swapped images to `output/PDS/` and shows no error.
+- **A non-Magic zip without `-g`.** A zip name with a 3-letter first part gives a set code. Thus `pds_hfc_en.zip` without `-g` writes 2 swapped images to `output/PDS/` and shows no error. Another non-Magic zip asks for a set code, deletes `output/<code>/` and then stops, so an existing set code typed at the prompt empties that set folder.
 - **Trim on a faint shadow.** The trim keeps each pixel that is not fully transparent. A faint shadow or a soft edge stays in the image, so the product can look smaller. The transparent images in the four sample zips trim correctly.
 
 ## Out of Scope
@@ -76,9 +79,10 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 ## Done When
 
 - [ ] `ruby test/prep_test.rb` passes.
-- [ ] The most recent Magic zip gives the swapped pairs in `output/<SETCODE>/`, with the new framing.
+- [ ] The most recent Magic zip gives the swapped pairs in `output/<SETCODE>/`, with the new framing. This run deletes and makes again `output/<SETCODE>/`.
 - [ ] `./prep.rb -g <url>` on each of the four zips in the Problem section gives one JPEG for each PNG in `output/<zip name without .zip>/`, each 2048px or smaller.
 - [ ] `CLAUDE.md` is 10 lines or fewer.
+- [ ] `./prep.rb -h` and `README.md` explain both modes.
 
 ## Implementation Stages
 
@@ -87,8 +91,8 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 **Status:** Not Started
 **What:** Add Minitest and tests that hold the current Magic behaviour before the next stages change the code.
 **Tests:** These tests pass at once.
-- The Magic selection keeps only complete `_01`/`_02` pairs and swaps them. It skips a file with only `_01`, a file with no suffix, a `.docx`, `__MACOSX` entries and dotfiles.
-- `derive_set_code` takes a 3-letter stem (`tmt_pds_en.zip` gives `TMT`) and an `MTG` stem (`MTGTMT_pds.zip` gives `TMT`). For another name it asks for the code and takes a 3-letter answer, and it refuses an answer that is not 3 letters. The test gives the answer through `$stdin`.
+- Through `process_zip`, the Magic selection keeps only complete `_01`/`_02` pairs and swaps them: the output folder holds only `a_01.jpg` and `a_02.jpg`, and `a_01.jpg` has the colour of `a_02.png`. It skips a file with only `_01`, a file with no suffix, a `.docx`, `__MACOSX` entries and dotfiles.
+- `derive_set_code` takes a 3-character stem (`tmt_pds_en.zip` gives `TMT`) and an `MTG` stem (`MTGTMT_pds.zip` gives `TMT`). For another name it asks for the code and takes a 3-character answer, and it refuses an answer of another length. The test gives the answer through `$stdin`.
 **Steps:**
 
 1. Add `gem 'minitest', '~> 5.25'` to the `Gemfile`, and run `bundle install`.
@@ -104,11 +108,12 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 **What:** Trim the transparent edges, add the 5% margin, square, limit to 2048px, and write the JPEG.
 **Tests:**
 - A transparent 100×60 PNG with a red 20×10 rectangle off centre gives a 22×22 JPEG with a white corner and a red centre.
-- An opaque 3000×1000 PNG keeps all its pixels and gives a 2048×2048 JPEG.
+- A solid-colour opaque 3000×1000 PNG keeps all its pixels and gives a 2048×2048 JPEG: the colour at about (100,1024) and (1948,1024), white at about (80,1024) and (1024,700).
 **Steps:**
 
 1. Write the tests.
 2. Change the `magick` arguments in `convert_to_jpeg` to the command in the Solution section, with `quality` for `QUALITY`.
+3. Run the most recent Magic zip, and check the output.
 
 - [ ] Tests passing
 - [ ] No regressions
@@ -124,8 +129,8 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 1. Write the tests.
 2. Add `-g`, `--general` to `parse_options`, with the help line `Convert every PNG as-is (non-Magic zips)`. Change the `-o` help line to `Output directory (default: output/<SETCODE>/ or output/<zip name>/)`.
-3. Add `default_output_dir(zip_basename, general)`. It calls `derive_set_code` only in Magic mode. `run` uses it.
-4. Change `process_zip` to `process_zip(zip_path, tmpdir, output_dir, quality, general:)`. In general mode it converts every extracted PNG, sorted by name. In Magic mode it keeps the pair selection and the swap.
+3. Add `default_output_dir(zip_basename, general:)`. It calls `derive_set_code` only in Magic mode. `run` uses it.
+4. Change `process_zip` to `process_zip(zip_path, tmpdir, output_dir, quality, general:)`, and add `general: false` to the Stage 1 call. In general mode it converts every extracted PNG, sorted by name, prints no Swapping line, and the Done line counts the converted files. In Magic mode it keeps the pair selection and the swap.
 5. Run `./prep.rb -g` on the four zips in the Problem section, and check the output.
 
 - [ ] Tests passing
@@ -134,13 +139,14 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 ### Stage 4: Docs
 
 **Status:** Not Started
-**What:** Move `PLAN.md` to `docs/implementations/` and make `CLAUDE.md` thin.
+**What:** Move `PLAN.md` to `docs/implementations/`, make `CLAUDE.md` thin, add `README.md`, and explain both modes in the CLI help.
 **Tests:** None: no rule.
 **Steps:**
 
 1. `git mv PLAN.md docs/implementations/2026-04-17_mtg-image-prep.md`.
 2. Rewrite `CLAUDE.md`: one line for the purpose, the run command with `-g`, `ruby test/prep_test.rb`, and "Plans: `docs/plans/`. Summaries: `docs/implementations/`."
-3. Run the most recent Magic zip, and check the output.
+3. Write `README.md`: requirements, setup, usage with both modes, the options, the framing, the tests.
+4. Change the help of `parse_options` to explain both modes and the framing, with one example for each mode. Add "Use -g for a non-Magic zip." to the error when no complete pair is found.
 
 The summary of this feature and the removal of this plan happen at completion.
 
