@@ -12,6 +12,31 @@ $stdout.sync = true
 
 DEFAULT_QUALITY = 85
 
+HELP = <<~TEXT
+  Usage: prep.rb <zip-path-or-url> [options]
+
+  Prepares the product images of a WPN zip for Shopify. Each PNG is trimmed,
+  gets a white margin, is made square, is limited to 2048px and is saved as a JPEG.
+
+  Magic (default): the set code comes from the zip name and names the output
+  folder, output/<SETCODE>/. Each _01/_02 pair is swapped. Files that are not
+  in a complete pair are skipped.
+
+  General (-g): every PNG is converted with its own name into
+  output/<zip name>/. Use it for D&D, board game and other non-Magic zips.
+
+  The default output folder is deleted and made again on each run.
+
+  Options:
+TEXT
+
+EXAMPLES = <<~TEXT
+
+  Examples:
+    ./prep.rb ~/Downloads/tmt_pds_en.zip
+    ./prep.rb -g https://media.wizards.com/2026/wpn/marketing_materials/avh/furyofdracula_pdp.zip
+TEXT
+
 def preflight
   missing = %w[magick curl].reject { |t| system("command -v #{t} > /dev/null 2>&1") }
   raise "Required CLI(s) not found on PATH: #{missing.join(', ')}" if missing.any?
@@ -106,11 +131,12 @@ end
 def parse_options(args)
   options = { quality: DEFAULT_QUALITY, general: false }
   parser = OptionParser.new do |o|
-    o.banner = 'Usage: prep.rb <zip-path-or-url> [options]'
-    o.on('-q', '--quality N', Integer, 'JPEG quality 1-100 (default: 85)') { |v| options[:quality] = v }
+    o.banner = HELP
     o.on('-g', '--general', 'Convert every PNG as-is (non-Magic zips)') { options[:general] = true }
+    o.on('-q', '--quality N', Integer, 'JPEG quality 1-100 (default: 85)') { |v| options[:quality] = v }
     o.on('-o', '--output DIR', 'Output directory (default: output/<SETCODE>/ or output/<zip name>/)') { |v| options[:output] = v }
-    o.on('-h', '--help') { puts o; exit }
+    o.on('-h', '--help', 'Show this help') { puts o; exit }
+    o.separator(EXAMPLES)
   end
   parser.parse!(args)
   source = args.shift or (puts parser; exit 1)
@@ -123,7 +149,7 @@ end
 
 def swapped_pairs(dir)
   stems = find_complete_pairs(dir)
-  raise 'No complete _01/_02 pairs found — nothing to convert' if stems.empty?
+  raise 'No complete _01/_02 pairs found — nothing to convert. Use -g for a non-Magic zip.' if stems.empty?
 
   swap_pairs(dir, stems)
 end

@@ -1,7 +1,7 @@
 # Feature: WPN Image Prep
 
 > **Branch:** `wpn-image-prep`
-> **Status:** In Progress (Stage 4/4)
+> **Status:** Complete
 
 ## Problem
 
@@ -138,7 +138,7 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 ### Stage 4: Docs
 
-**Status:** Not Started
+**Status:** Complete
 **What:** Move `PLAN.md` to `docs/implementations/`, make `CLAUDE.md` thin, add `README.md`, and explain both modes in the CLI help.
 **Tests:** None: no rule.
 **Steps:**
@@ -150,5 +150,5 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 The summary of this feature and the removal of this plan happen at completion.
 
-- [ ] Tests passing
-- [ ] No regressions
+- [x] Tests passing
+- [x] No regressions

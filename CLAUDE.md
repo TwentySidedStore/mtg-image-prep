@@ -1,11 +1,7 @@
 # mtg-image-prep
 
-Small Ruby CLI that processes WPN image zips for Magic: The Gathering product releases. Run every ~2 months when a new set ships.
+Ruby CLI that turns WPN product image zips into square JPEGs for Shopify. See `README.md`.
 
-See `PLAN.md` for the implementation spec.
-
-## Style
-- Ruby 3.x, stdlib-first (OptionParser, not Thor).
-- Functions do one thing; keep them ≤15 lines.
-- No code comments — self-document via naming.
-- Don't overguard. Fail loudly if ImageMagick is missing or the zip is malformed.
+- Run: `./prep.rb <zip-path-or-url>` for Magic, `./prep.rb -g <zip-path-or-url>` for other zips.
+- Test: `ruby test/prep_test.rb`
+- Plans: `docs/plans/`. Summaries: `docs/implementations/`.
