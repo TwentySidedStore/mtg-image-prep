@@ -1,7 +1,7 @@
 # Feature: WPN Image Prep
 
 > **Branch:** `wpn-image-prep`
-> **Status:** In Progress (Stage 1/4)
+> **Status:** In Progress (Stage 2/4)
 
 ## Problem
 
@@ -88,7 +88,7 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 ### Stage 1: Tests of the Magic rules
 
-**Status:** Not Started
+**Status:** Complete
 **What:** Add Minitest and tests that hold the current Magic behaviour before the next stages change the code.
 **Tests:** These tests pass at once.
 - Through `process_zip`, the Magic selection keeps only complete `_01`/`_02` pairs and swaps them: the output folder holds only `a_01.jpg` and `a_02.jpg`, and `a_01.jpg` has the colour of `a_02.png`. It skips a file with only `_01`, a file with no suffix, a `.docx`, `__MACOSX` entries and dotfiles.
@@ -99,8 +99,8 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 2. Write `test/prep_test.rb`: require `prep.rb` and `minitest/autorun`, a helper that writes a zip from a hash of entry names to file bytes, and a helper that makes a PNG with an opaque shape of a given colour on a transparent canvas with `magick`.
 3. Write the tests.
 
-- [ ] Tests passing
-- [ ] No regressions
+- [x] Tests passing
+- [x] No regressions
 
 ### Stage 2: Framing
 
