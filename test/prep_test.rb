@@ -30,6 +30,20 @@ class PrepTest < Minitest::Test
     assert_color RED, File.join(output, 'a_02.jpg')
   end
 
+  def test_general_mode_converts_every_png_with_its_own_name
+    zip = write_zip('furyofdracula_pdp.zip', 'a_01.png' => png('red'), 'a_02.png' => png('blue'), 'box.png' => png('red'))
+
+    output = convert(zip, general: true)
+
+    assert_equal %w[a_01.jpg a_02.jpg box.jpg], Dir.children(output).sort
+    assert_color RED, File.join(output, 'a_01.jpg')
+  end
+
+  def test_default_output_dir_is_the_set_code_for_magic_and_the_zip_name_for_general
+    assert_equal 'output/TMT', default_output_dir('tmt_pds_en.zip', general: false)
+    assert_equal 'output/furyofdracula_pdp', default_output_dir('furyofdracula_pdp.zip', general: true)
+  end
+
   def test_derive_set_code_reads_the_zip_name_and_otherwise_asks_for_three_characters
     assert_equal 'TMT', derive_set_code('tmt_pds_en.zip')
     assert_equal 'TMT', derive_set_code('MTGTMT_pds.zip')
@@ -64,11 +78,11 @@ class PrepTest < Minitest::Test
     IO.popen(['magick', 'identify', '-format', '%w %h', path], &:read).split.map(&:to_i)
   end
 
-  def convert(zip)
+  def convert(zip, general: false)
     output = File.join(@dir, 'output')
     work = File.join(@dir, 'work')
     FileUtils.mkdir_p([output, work])
-    capture_io { process_zip(zip, work, output, DEFAULT_QUALITY) }
+    capture_io { process_zip(zip, work, output, DEFAULT_QUALITY, general:) }
     output
   end
 

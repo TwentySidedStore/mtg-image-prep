@@ -1,7 +1,7 @@
 # Feature: WPN Image Prep
 
 > **Branch:** `wpn-image-prep`
-> **Status:** In Progress (Stage 3/4)
+> **Status:** In Progress (Stage 4/4)
 
 ## Problem
 
@@ -120,7 +120,7 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 ### Stage 3: General mode
 
-**Status:** Not Started
+**Status:** Complete
 **What:** Add `-g`, `--general`, which converts every PNG with its own name into `output/<zip name without .zip>/`.
 **Tests:**
 - `process_zip` in general mode, on a zip with `a_01.png` (red), `a_02.png` (blue) and `box.png`, gives `a_01.jpg`, `a_02.jpg` and `box.jpg`, and `a_01.jpg` is red: no swap.
@@ -133,8 +133,8 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 4. Change `process_zip` to `process_zip(zip_path, tmpdir, output_dir, quality, general:)`, and add `general: false` to the Stage 1 call. In general mode it converts every extracted PNG, sorted by name, prints no Swapping line, and the Done line counts the converted files. In Magic mode it keeps the pair selection and the swap.
 5. Run `./prep.rb -g` on the four zips in the Problem section, and check the output.
 
-- [ ] Tests passing
-- [ ] No regressions
+- [x] Tests passing
+- [x] No regressions
 
 ### Stage 4: Docs
 

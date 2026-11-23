@@ -104,11 +104,12 @@ def convert_to_jpeg(pngs, output_dir, quality)
 end
 
 def parse_options(args)
-  options = { quality: DEFAULT_QUALITY }
+  options = { quality: DEFAULT_QUALITY, general: false }
   parser = OptionParser.new do |o|
     o.banner = 'Usage: prep.rb <zip-path-or-url> [options]'
     o.on('-q', '--quality N', Integer, 'JPEG quality 1-100 (default: 85)') { |v| options[:quality] = v }
-    o.on('-o', '--output DIR', 'Output directory (default: output/<SETCODE>/)') { |v| options[:output] = v }
+    o.on('-g', '--general', 'Convert every PNG as-is (non-Magic zips)') { options[:general] = true }
+    o.on('-o', '--output DIR', 'Output directory (default: output/<SETCODE>/ or output/<zip name>/)') { |v| options[:output] = v }
     o.on('-h', '--help') { puts o; exit }
   end
   parser.parse!(args)
@@ -116,26 +117,38 @@ def parse_options(args)
   [source, options]
 end
 
-def process_zip(zip_path, tmpdir, output_dir, quality)
+def all_pngs(dir)
+  Dir.children(dir).sort.map { |name| File.join(dir, name) }
+end
+
+def swapped_pairs(dir)
+  stems = find_complete_pairs(dir)
+  raise 'No complete _01/_02 pairs found — nothing to convert' if stems.empty?
+
+  swap_pairs(dir, stems)
+end
+
+def process_zip(zip_path, tmpdir, output_dir, quality, general:)
   png_dir = File.join(tmpdir, 'pngs')
   FileUtils.mkdir_p(png_dir)
   extract_pngs(zip_path, png_dir)
-  stems = find_complete_pairs(png_dir)
-  raise 'No complete _01/_02 pairs found — nothing to convert' if stems.empty?
+  pngs = general ? all_pngs(png_dir) : swapped_pairs(png_dir)
+  convert_to_jpeg(pngs, output_dir, quality)
+  puts "Done → #{output_dir}/ (#{pngs.size} JPEGs)"
+end
 
-  paired_files = swap_pairs(png_dir, stems)
-  convert_to_jpeg(paired_files, output_dir, quality)
-  puts "Done → #{output_dir}/ (#{paired_files.size} JPEGs)"
+def default_output_dir(zip_basename, general:)
+  name = general ? File.basename(zip_basename, '.*') : derive_set_code(zip_basename)
+  File.join('output', name)
 end
 
 def run(source, options)
   preflight
   Dir.mktmpdir do |tmpdir|
     zip_path, zip_basename = resolve_zip(source, tmpdir)
-    set_code = derive_set_code(zip_basename)
-    output_dir = options[:output] || File.join('output', set_code)
+    output_dir = options[:output] || default_output_dir(zip_basename, general: options[:general])
     ensure_output_dir(output_dir, options[:output].nil?)
-    process_zip(zip_path, tmpdir, output_dir, options[:quality])
+    process_zip(zip_path, tmpdir, output_dir, options[:quality], general: options[:general])
   end
 end
 
