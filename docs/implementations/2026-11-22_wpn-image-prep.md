@@ -5,13 +5,13 @@
 
 ## Summary
 
-`prep.rb` now prepares the product images of any WPN zip, not only Magic zips. Magic stays the default. `-g` converts every PNG with its own name into `output/<zip name>/`. Each image is trimmed, gets a 5% white margin, is made square, is limited to 2048px and is saved as a JPEG.
+`prep.rb` now prepares the product images of any WPN zip, not only Magic zips. Magic stays the default. `-g` converts every PNG with its own name into `output/general/<zip name>/`. Magic output goes to `output/mtg/<SETCODE>/`. Each image is trimmed, gets a 5% white margin, is made square, is limited to 2048px and is saved as a JPEG.
 
 ## What Changed
 
 - `prep.rb`:
   - `-g`, `--general`.
-  - `default_output_dir(zip_basename, general:)`: `output/<SETCODE>` for Magic, `output/<zip name without .zip>` for general. `run` calls it only when `-o` is not given.
+  - `default_output_dir(zip_basename, general:)`: `output/mtg/<SETCODE>` for Magic, `output/general/<zip name without .zip>` for general. `run` calls it only when `-o` is not given.
   - `process_zip(..., general:)`: in general mode it converts `all_pngs`, sorted by name. In Magic mode it converts `swapped_pairs`.
   - `convert_to_jpeg`: the new framing command. The 1px transparent border before `-trim` makes the trim remove only transparent edges.
   - `HELP` and `EXAMPLES`: the `-h` text explains both modes and the framing. The no-pairs error tells the user to use `-g` for a non-Magic zip.
@@ -36,6 +36,6 @@
 ## Watch List
 
 - Magic images now have a 5% margin, against about 1% before, and more of them reach the 2048px limit. New Magic sets look slightly different from earlier ones in the store.
-- A non-Magic zip run without `-g` can delete and make again a wrong folder: a zip name with a 3-character first part (`pds_hfc_en.zip`) gives `output/PDS/` with 2 swapped images. Another name asks for a set code, deletes `output/<code>/` and then stops.
+- A non-Magic zip run without `-g` can delete and make again a wrong folder: a zip name with a 3-character first part (`pds_hfc_en.zip`) gives `output/mtg/PDS/` with 2 swapped images. Another name asks for a set code, deletes `output/mtg/<code>/` and then stops.
 - A faint shadow or a soft edge stays after the trim, so the product can look smaller.
 - A fully transparent PNG gives a 1×1 JPEG with no error.

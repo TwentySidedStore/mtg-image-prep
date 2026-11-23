@@ -39,9 +39,9 @@ class PrepTest < Minitest::Test
     assert_color RED, File.join(output, 'a_01.jpg')
   end
 
-  def test_default_output_dir_is_the_set_code_for_magic_and_the_zip_name_for_general
-    assert_equal 'output/TMT', default_output_dir('tmt_pds_en.zip', general: false)
-    assert_equal 'output/furyofdracula_pdp', default_output_dir('furyofdracula_pdp.zip', general: true)
+  def test_default_output_dir_is_the_set_code_under_mtg_and_the_zip_name_under_general
+    assert_equal 'output/mtg/TMT', default_output_dir('tmt_pds_en.zip', general: false)
+    assert_equal 'output/general/furyofdracula_pdp', default_output_dir('furyofdracula_pdp.zip', general: true)
   end
 
   def test_derive_set_code_reads_the_zip_name_and_otherwise_asks_for_three_characters

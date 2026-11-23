@@ -24,7 +24,7 @@ bundle install
 |--------|--------|
 | `-g`, `--general` | Convert every PNG as-is (non-Magic zips) |
 | `-q`, `--quality N` | JPEG quality 1–100 (default: 85) |
-| `-o`, `--output DIR` | Output folder (default: `output/<SETCODE>/` or `output/<zip name>/`) |
+| `-o`, `--output DIR` | Output folder (default: `output/mtg/<SETCODE>/` or `output/general/<zip name>/`) |
 | `-h`, `--help` | Show the help |
 
 ### Magic (default)
@@ -36,7 +36,7 @@ bundle install
 - The set code comes from the zip name: a 3-character first part (`tmt_pds_en.zip` gives `TMT`) or an `MTG` prefix (`MTGTMT_pds.zip` gives `TMT`). When the name gives no set code, the script asks for it.
 - Each `_01`/`_02` pair is swapped.
 - Files that are not in a complete pair are skipped.
-- The output folder is `output/<SETCODE>/`.
+- The output folder is `output/mtg/<SETCODE>/`.
 
 ### General (`-g`)
 
@@ -45,7 +45,7 @@ bundle install
 ```
 
 - Every PNG is converted with its own name.
-- The output folder is `output/<zip name without .zip>/`, for example `output/furyofdracula_pdp/`.
+- The output folder is `output/general/<zip name without .zip>/`, for example `output/general/furyofdracula_pdp/`.
 
 Use `-g` for Dungeons & Dragons, board game and other non-Magic zips. Without `-g`, such a zip can ask for a set code and stop with "No complete _01/_02 pairs found", or give a few swapped images in a wrong folder.
 
@@ -60,7 +60,7 @@ Each image is processed in this sequence:
 
 ## Output
 
-The default output folder is deleted and made again on each run. A folder given with `-o` is not deleted: files with the same name are replaced, and other files stay. `output/` is not in git.
+The default output folder of the set or the zip is deleted and made again on each run. The other folders in `output/mtg/` and `output/general/` stay. A folder given with `-o` is not deleted: files with the same name are replaced, and other files stay. `output/` is not in git.
 
 ## Tests
 

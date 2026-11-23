@@ -19,11 +19,11 @@ HELP = <<~TEXT
   gets a white margin, is made square, is limited to 2048px and is saved as a JPEG.
 
   Magic (default): the set code comes from the zip name and names the output
-  folder, output/<SETCODE>/. Each _01/_02 pair is swapped. Files that are not
+  folder, output/mtg/<SETCODE>/. Each _01/_02 pair is swapped. Files that are not
   in a complete pair are skipped.
 
   General (-g): every PNG is converted with its own name into
-  output/<zip name>/. Use it for D&D, board game and other non-Magic zips.
+  output/general/<zip name>/. Use it for D&D, board game and other non-Magic zips.
 
   The default output folder is deleted and made again on each run.
 
@@ -134,7 +134,7 @@ def parse_options(args)
     o.banner = HELP
     o.on('-g', '--general', 'Convert every PNG as-is (non-Magic zips)') { options[:general] = true }
     o.on('-q', '--quality N', Integer, 'JPEG quality 1-100 (default: 85)') { |v| options[:quality] = v }
-    o.on('-o', '--output DIR', 'Output directory (default: output/<SETCODE>/ or output/<zip name>/)') { |v| options[:output] = v }
+    o.on('-o', '--output DIR', 'Output directory (default: output/mtg/<SETCODE>/ or output/general/<zip name>/)') { |v| options[:output] = v }
     o.on('-h', '--help', 'Show this help') { puts o; exit }
     o.separator(EXAMPLES)
   end
@@ -164,8 +164,9 @@ def process_zip(zip_path, tmpdir, output_dir, quality, general:)
 end
 
 def default_output_dir(zip_basename, general:)
-  name = general ? File.basename(zip_basename, '.*') : derive_set_code(zip_basename)
-  File.join('output', name)
+  return File.join('output', 'general', File.basename(zip_basename, '.*')) if general
+
+  File.join('output', 'mtg', derive_set_code(zip_basename))
 end
 
 def run(source, options)
