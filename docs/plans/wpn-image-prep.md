@@ -1,7 +1,7 @@
 # Feature: WPN Image Prep
 
 > **Branch:** `wpn-image-prep`
-> **Status:** In Progress (Stage 2/4)
+> **Status:** In Progress (Stage 3/4)
 
 ## Problem
 
@@ -104,7 +104,7 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 
 ### Stage 2: Framing
 
-**Status:** Not Started
+**Status:** Complete
 **What:** Trim the transparent edges, add the 5% margin, square, limit to 2048px, and write the JPEG.
 **Tests:**
 - A transparent 100×60 PNG with a red 20×10 rectangle off centre gives a 22×22 JPEG with a white corner and a red centre.
@@ -115,8 +115,8 @@ Most of the images are transparent PNGs. `FuryOfDracula_open.png` is an opaque p
 2. Change the `magick` arguments in `convert_to_jpeg` to the command in the Solution section, with `quality` for `QUALITY`.
 3. Run the most recent Magic zip, and check the output.
 
-- [ ] Tests passing
-- [ ] No regressions
+- [x] Tests passing
+- [x] No regressions
 
 ### Stage 3: General mode
 

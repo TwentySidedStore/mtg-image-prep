@@ -37,7 +37,32 @@ class PrepTest < Minitest::Test
     assert_raises(RuntimeError) { answering("eberron\n") { derive_set_code('eberron_product_shots.zip') } }
   end
 
+  def test_framing_trims_transparent_edges_adds_a_margin_squares_and_limits_to_2048
+    small = frame(png('red', canvas: '100x60', box: '60,10 79,19'))
+    assert_equal [22, 22], size_of(small)
+    assert_color WHITE, small, at: [0, 0]
+    assert_color RED, small
+
+    large = frame(IO.popen(['magick', '-size', '3000x1000', 'xc:red', 'png:-'], 'rb', &:read))
+    assert_equal [2048, 2048], size_of(large)
+    assert_color RED, large, at: [100, 1024]
+    assert_color RED, large, at: [1948, 1024]
+    assert_color WHITE, large, at: [80, 1024]
+    assert_color WHITE, large, at: [1024, 700]
+  end
+
   private
+
+  def frame(bytes)
+    source = File.join(@dir, 'source.png')
+    File.binwrite(source, bytes)
+    capture_io { convert_to_jpeg([source], @dir, DEFAULT_QUALITY) }
+    File.join(@dir, 'source.jpg')
+  end
+
+  def size_of(path)
+    IO.popen(['magick', 'identify', '-format', '%w %h', path], &:read).split.map(&:to_i)
+  end
 
   def convert(zip)
     output = File.join(@dir, 'output')
@@ -76,6 +101,6 @@ class PrepTest < Minitest::Test
   end
 
   def center_of(path)
-    IO.popen(['magick', 'identify', '-format', '%w %h', path], &:read).split.map { |side| side.to_i / 2 }
+    size_of(path).map { |side| side / 2 }
   end
 end

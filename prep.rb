@@ -94,9 +94,10 @@ def convert_to_jpeg(pngs, output_dir, quality)
   pngs.each_with_index do |src, i|
     dest = File.join(output_dir, "#{File.basename(src, '.png')}.jpg")
     system('magick', src,
+           '-bordercolor', 'none', '-border', '1', '-trim', '+repage',
            '-background', 'white', '-gravity', 'center',
-           '-extent', '%[fx:max(w,h)]x%[fx:max(w,h)]',
-           '-flatten', '-quality', quality.to_s,
+           '-extent', '%[fx:max(w,h)*1.1]x%[fx:max(w,h)*1.1]',
+           '-flatten', '-resize', '2048x2048>', '-quality', quality.to_s,
            dest, exception: true)
     printf("  [%2d/%d] %s\n", i + 1, pngs.size, File.basename(dest))
   end
